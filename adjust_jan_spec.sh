@@ -40,11 +40,7 @@ Default_T63_output_file=$3
 # Keep a cleanup variable around
 rmlist=""
 
-
 # Set up the environment for this script:
-module list > currently_loaded_modules
-rmlist="currently_loaded_modules $rmlist"
-module purge
 module load cdo                 # PG: Maybe think about using a different CDO version here?
 echo "Using CDO Version: "
 cdo -V
@@ -104,6 +100,7 @@ rmlist="tmp7 tmp8 $rmlist"
 # Put the Q in the output file
 ncks -A -v Q tmp8 $ofile
 ### DONE! Now we need to work on SVO
+
 
 ##### Clean Up:
 rm $rmlist
