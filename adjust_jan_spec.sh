@@ -52,9 +52,9 @@ cdo -V
 # Get the standard T63L47_jan_spec.nc to work with
 Standard_T63L47_jan_spec_filepath_file=/home/ollie/pgierz/reference_stuff/T63L47_jan_spec.nc
 cp $Standard_T63L47_jan_spec_filepath_file .
-Standard_T63L47_jan_spec_file=$(basename $Standard_T63L47_fan_spec_filepath_file)
-cp $Standard_T63L46_jan_spec_file "{$Standard_T63L46_jan_spec_file%.*}_from_T31.nc"
-ofile="{$Standard_T63L46_jan_spec_file%.*}_from_T31.nc"
+Standard_T63L47_jan_spec_file=$(basename $Standard_T63L47_jan_spec_filepath_file)
+cp $Standard_T63L47_jan_spec_file "${Standard_T63L47_jan_spec_file%.*}_from_T31.nc"
+ofile="${Standard_T63L47_jan_spec_file%.*}_from_T31.nc"
 # Seperate variable STP (Spectral Temperature) into both spectral tmeperature
 # and log of surface pressure, as it contains spectral temperature in levels
 # 1:nlev, and log(SP) in level nlev+1
@@ -68,11 +68,13 @@ cdo -remapbil,t63grid \
     "${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc
 # Get the vertical coordinate table
 cdo vct $Default_T63_output_file > vct
+rmlist="vct $rmlist"
 # Get the target orography (geosp)
 cdo -chname,GEOSP,geosp -selvar,GEOSP $Target_Orog_file geosp_for_vertical_interpolation.nc
 cdo remapeta,vct,geosp_for_vertical_interpolation.nc \
     "${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc \
     "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc
+rmlist="geosp_for_vertical_interpolation.nc $rmlist"
 remapped_file="${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc
 # FIXME: geosp not found?
 ### DONE! (cdo still warns us about not existing geosp)
@@ -102,3 +104,6 @@ rmlist="tmp7 tmp8 $rmlist"
 # Put the Q in the output file
 ncks -A -v Q tmp8 $ofile
 ### DONE! Now we need to work on SVO
+
+##### Clean Up:
+rm $rmlist
