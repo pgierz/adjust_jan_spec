@@ -102,23 +102,19 @@ ncwa -a time "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc tmp && mv tmp "${Old_T
 ncdump "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc tmp; rm tmp
 ncks -A -C -v SD "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
 
-##### Clean Up:
-rm $rmlist
-exit
-
 ### Regenerate STP
 cdo -s -remapbil,t63grid \
     -chname,t,STP \
-    -selvar,t,aps \
+    -selvar,q,t,aps \
     ${Old_T31_output_file} \
-    "${Old_T31_output_file%.*}"_t_aps_T63L19.nc
-rmlist="${Old_T31_output_file%.*}"_t_aps_T63L19.nc
+    "${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc
+rmlist="${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc
 cdo -s -remapeta,vct,geosp_for_vertical_interpolation.nc \
-    "${Old_T31_output_file%.*}"_t_aps_T63L19.nc \
-    "${Old_T31_output_file%.*}"_t_aps_T63L47.nc
-ncwa -a time "${Old_T31_output_file%.*}"_t_aps_T63L47.nc tmp && mv tmp "${Old_T31_output_file%.*}"_t_aps_T63L47.nc
-ncdump "${Old_T31_output_file%.*}"_t_aps_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_t_aps_T63L47.nc tmp; rm tmp
-ncks -A -C -v STP "${Old_T31_output_file%.*}"_t_aps_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
+    "${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc \
+    "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc
+ncwa -a time "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc tmp && mv tmp "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc
+ncdump "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc tmp; rm tmp
+ncks -A -C -v STP "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
 
 ### Regenerate LSP
 cdo -s -remapbil,t63grid \
