@@ -42,98 +42,95 @@ ofile="${Standard_T63L47_jan_spec_file%.*}_from_T31.nc"
 # and log of surface pressure, as it contains spectral temperature in levels
 # 1:nlev, and log(SP) in level nlev+1
 cdo -s import_e5ml ${Standard_T63L47_jan_spec_file} "${Standard_T63L47_jan_spec_file%.*}"_seperated.nc
+rmlist="${Standard_T63L47_jan_spec_file%.*}_seperated.nc $rmlist"
 cdo -s sp2gp "${Standard_T63L47_jan_spec_file%.*}"_seperated.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
+rmlist="${Standard_T63L47_jan_spec_file%.*}_seperated_sp2gp.nc $rmlist"
 
-### Regenerate Q 
-# Get the required variables from the old T31 output file
-cdo -s -remapbil,t63grid \
-    -selvar,q,t,aps \
-    $Old_T31_output_file \
-    "${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc
-rmlist="${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc
-# Get the vertical coordinate table
-cdo -s vct $Default_T63_output_file > vct
-rmlist="vct $rmlist"
-# Get the target orography (geosp)
-cdo -s -chname,GEOSP,geosp -selvar,GEOSP $Target_Orog_file geosp_for_vertical_interpolation.nc
-cdo -s remapeta,vct,geosp_for_vertical_interpolation.nc \
-    "${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc \
-    "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc
-rmlist="geosp_for_vertical_interpolation.nc $rmlist"
-remapped_file="${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc
-rmlist="$remapped_file $rmlist"
-# FIXME: geosp not found?
-### DONE! (cdo still warns us about not existing geosp)
+function regrid_vertical_and_horizontal_T31L19_to_T63L47(){
+    varname=$1
+    newname=$2
+    echo "Performing lateral and vertical intepolation for $varname --> $newname"
+    # Figure out if we have temperature or humidity as an input, since this
+    # needs both to remap correctly...
+    if [ $varname == "q" ] || [ $varname == "t" ]
+    then
+        vars="q,t,aps"
+    else
+        vars="${varname},aps"
+    fi
+    #
+    # Regrid laterally
+    #
+    cdo -s remapbil,t63grid \
+        -selvar,$vars \
+        ${Old_T31_output_file} \
+        regrid_file_T63L19.nc
+    rmlist="regrid_file_T63L19.nc $rmlist"
+    #
+    # Determine files needed for vertical regridding
+    # 1. Vertical coordinate table
+    # FIXME: This is always the same for T63L47...probably, it could be packaged
+    # with the script as a requirement, instead of needed a T63 output file...
+    cdo -s vct $Default_T63_output_file > vct
+    rmlist="vct $rmlist"
+    # 2. Target Orography
+    cdo -s -chname,GEOSP,geosp -selvar,GEOSP $Target_Orog_file geosp_for_vertical_interpolation.nc
+    rmlist="geosp_for_vertical_interpolation.nc $rmlist"
+    #
+    # Regrid vertically
+    #
+    cdo -s remapeta,vct,geosp_for_vertical_interpolation.nc \
+        regrid_file_T63L19.nc \
+        regrid_file_T63L47.nc
+    rmlist="regrid_file_T63L47.nc $rmlist"
+    # remove the time coordinate
+    ncwa -a time regrid_file_T63L47.nc tmp && mv tmp regrid_file_T63L47.nc
+    # make sure everything is double and not float (this causes chaos and strange numbers otherwise...)
+    ncdump regrid_file_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o regrid_file_T63L47.nc tmp; rm tmp
+    ncrename -v $varname,$newname regrid_file_T63L47.nc tmp; mv tmp regrid_file_T63L47.nc
+    ncks -A -C -v $newname regrid_file_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
+}
 
-### Replace the new Q in the output file:
-# Kill the time dimension
-ncwa -a time $remapped_file tmp && mv tmp $remapped_file
-ncdump $remapped_file | sed 's/float/double/g' > tmp; ncgen -o $remapped_file tmp; rm tmp
-ncrename -v q,Q $remapped_file tmp; mv tmp $remapped_file
-# Put the Q in the output file
-ncks -A -C -v Q $remapped_file "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
-### DONE! 
 
-### Regenerate SVO
-cdo -s -remapbil,t63grid \
-    -chname,svo,SVO \
-    -selvar,svo,aps \
-    ${Old_T31_output_file} \
-    "${Old_T31_output_file%.*}"_svo_aps_T63L19.nc
-rmlist="${Old_T31_output_file%.*}"_svo_aps_T63L19.nc
-cdo -s -remapeta,vct,geosp_for_vertical_interpolation.nc \
-    "${Old_T31_output_file%.*}"_svo_aps_T63L19.nc \
-    "${Old_T31_output_file%.*}"_svo_aps_T63L47.nc
-ncwa -a time "${Old_T31_output_file%.*}"_svo_aps_T63L47.nc tmp && mv tmp "${Old_T31_output_file%.*}"_svo_aps_T63L47.nc
-ncdump "${Old_T31_output_file%.*}"_svo_aps_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_svo_aps_T63L47.nc tmp; rm tmp
-ncks -A -C -v SVO "${Old_T31_output_file%.*}"_svo_aps_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
-
-### Regenerate SD
-cdo -s -remapbil,t63grid \
-    -chname,sd,SD \
--selvar,sd,aps \
-    ${Old_T31_output_file} \
-    "${Old_T31_output_file%.*}"_sd_aps_T63L19.nc
-rmlist="${Old_T31_output_file%.*}"_sd_aps_T63L19.nc
-cdo -s -remapeta,vct,geosp_for_vertical_interpolation.nc \
-    "${Old_T31_output_file%.*}"_sd_aps_T63L19.nc \
-    "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc
-ncwa -a time "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc tmp && mv tmp "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc
-ncdump "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc tmp; rm tmp
-ncks -A -C -v SD "${Old_T31_output_file%.*}"_sd_aps_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
-
-### Regenerate STP
-cdo -s -remapbil,t63grid \
-    -chname,t,STP \
-    -selvar,q,t,aps \
-    ${Old_T31_output_file} \
-    "${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc
-rmlist="${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc
-cdo -s -remapeta,vct,geosp_for_vertical_interpolation.nc \
-    "${Old_T31_output_file%.*}"_q_t_aps_T63L19.nc \
-    "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc
-ncwa -a time "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc tmp && mv tmp "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc
-ncdump "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc tmp; rm tmp
-ncks -A -C -v STP "${Old_T31_output_file%.*}"_q_t_aps_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
-
-### Regenerate LSP
+regrid_vertical_and_horizontal_T31L19_to_T63L47 q Q
+regrid_vertical_and_horizontal_T31L19_to_T63L47 svo SVO
+regrid_vertical_and_horizontal_T31L19_to_T63L47 sd SD
+regrid_vertical_and_horizontal_T31L19_to_T63L47 t STP
+### Regenerate LSP (2D field, no vertical interpolation needed)
+echo "Performing lateral interpolation for lsp --> LSP"
 cdo -s -remapbil,t63grid \
     -chname,lsp,LSP \
     -selvar,lsp,aps \
     ${Old_T31_output_file} \
     "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc
-rmlist="${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc
-cdo -s -remapeta,vct,geosp_for_vertical_interpolation.nc \
-    "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc \
-    "${Old_T31_output_file%.*}"_lsp_aps_T63L47.nc
-ncwa -a time "${Old_T31_output_file%.*}"_lsp_aps_T63L47.nc tmp && mv tmp "${Old_T31_output_file%.*}"_lsp_aps_T63L47.nc
-ncdump "${Old_T31_output_file%.*}"_lsp_aps_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_lsp_aps_T63L47.nc tmp; rm tmp
+rmlist="${Old_T31_output_file%.*}_lsp_aps_T63L19.nc $rmlist"
+ncwa -a time "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc tmp && mv tmp "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc
+ncdump "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc tmp; rm tmp
 ncks -A -C -v LSP "${Old_T31_output_file%.*}"_lsp_aps_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
 
+# Split up the variables:
+cdo splitname "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_
+# Go back to spectral space for the spectral variables:
+for var in SVO SD STP LSP
+do
+    cdo -s gp2sp "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_${var}.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_${var}_gp2sp.nc
+    rmlist="${Standard_T63L47_jan_spec_file%.*}_seperated_sp2gp_${var}.nc ${Standard_T63L47_jan_spec_file%.*}_seperated_sp2gp_${var}_gp2sp.nc $rmlist"
+done
+rmlist="${Standard_T63L47_jan_spec_file%.*}_seperated_sp2gp_Q.nc $rmlist"
 
+cdo merge \
+    "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_SVO_gp2sp.nc \
+    "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_SD_gp2sp.nc \
+    "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_STP_gp2sp.nc \
+    "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_LSP_gp2sp.nc \
+    "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_Q.nc \
+    "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_gp2sp.nc
 
-
+# Add the LSP layer back to STP
+cdo -s export_e5ml "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_gp2sp.nc "${Standard_T63L47_jan_spec_file%.*}"_sp2gp_gp2sp.nc
+rmlist="${Standard_T63L47_jan_spec_file%.*}_seperated_sp2gp_gp2sp.nc ${Standard_T63L47_jan_spec_file%.*}_sp2gp_gp2sp.nc $rmlist"
+mv "${Standard_T63L47_jan_spec_file%.*}"_sp2gp_gp2sp.nc ${ofile}
 
 ##### Clean Up:
-rm $rmlist
+rm -f $rmlist
 exit
