@@ -39,9 +39,12 @@ For questions, improvement suggestions, or to report bugs; please make use of
 the GitHub issue tracker or contact:
 
 Dr. Paul Gierz
+
 Paleoclimate Dynamics
+
 AWI Bremerhaven
 
 email: pgierz@awi.de
-orcid: fjalfas
-ResearchGate: 
+
+<a href="https://orcid.org/0000-0002-4512-087X" target="orcid.widget" rel="noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">orcid.org/0000-0002-4512-087X</a>
+
