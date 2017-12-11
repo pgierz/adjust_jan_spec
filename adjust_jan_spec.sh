@@ -37,8 +37,13 @@ Standard_T63L47_jan_spec_filepath_file=/home/ollie/pgierz/reference_stuff/T63L47
 cp $Standard_T63L47_jan_spec_filepath_file .
 Standard_T63L47_jan_spec_file=$(basename $Standard_T63L47_jan_spec_filepath_file)
 cp $Standard_T63L47_jan_spec_file "${Standard_T63L47_jan_spec_file%.*}_from_T31.nc"
-ofile="${Standard_T63L47_jan_spec_file%.*}_from_T31.nc"
-# Seperate variable STP (Spectral Temperature) into both spectral tmeperature
+
+# Generate the output file name using the old expid: 
+only_name=$(basename $Old_T31_output_file)
+oldexpid="${only_name%_echam5*}"
+ofile="${Standard_T63L47_jan_spec_file%.*}_from_${oldexpid}_T31L19.nc"
+
+# Seperate variable STP (Spectral Temperature) into both spectral temperature
 # and log of surface pressure, as it contains spectral temperature in levels
 # 1:nlev, and log(SP) in level nlev+1
 cdo -s import_e5ml ${Standard_T63L47_jan_spec_file} "${Standard_T63L47_jan_spec_file%.*}"_seperated.nc
