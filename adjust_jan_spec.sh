@@ -33,10 +33,20 @@ echo "Using cdo Version: "
 cdo -s -V
 
 # Get the standard T63L47_jan_spec.nc to work with
-Standard_T63L47_jan_spec_filepath_file=/home/ollie/pgierz/reference_stuff/T63L47_jan_spec.nc
+case $HOSTNAME in
+    (mlogin*)
+        Standard_T63L47_jan_spec_filepath_file=/pool/data/ECHAM6/T63/T63L47_jan_spec.nc
+        ;;
+    (ollie*)
+        Standard_T63L47_jan_spec_filepath_file=/home/ollie/pgierz/reference_stuff/T63L47_jan_spec.nc
+        ;;
+    (*)
+        echo "I don't know where to look for the standard T63L47_jan_spec.nc file! Please add a case!"
+        exit
+esac
+
 cp $Standard_T63L47_jan_spec_filepath_file .
 Standard_T63L47_jan_spec_file=$(basename $Standard_T63L47_jan_spec_filepath_file)
-cp $Standard_T63L47_jan_spec_file "${Standard_T63L47_jan_spec_file%.*}_from_T31.nc"
 
 # Generate the output file name using the old expid:
 only_name=$(basename $Old_T31_output_file)
