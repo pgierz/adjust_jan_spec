@@ -38,7 +38,7 @@ cp $Standard_T63L47_jan_spec_filepath_file .
 Standard_T63L47_jan_spec_file=$(basename $Standard_T63L47_jan_spec_filepath_file)
 cp $Standard_T63L47_jan_spec_file "${Standard_T63L47_jan_spec_file%.*}_from_T31.nc"
 
-# Generate the output file name using the old expid: 
+# Generate the output file name using the old expid:
 only_name=$(basename $Old_T31_output_file)
 oldexpid="${only_name%_echam5*}"
 ofile="${Standard_T63L47_jan_spec_file%.*}_from_${oldexpid}_T31L19.nc"
@@ -111,7 +111,7 @@ cdo -s -remapbil,t63grid \
 rmlist="${Old_T31_output_file%.*}_lsp_aps_T63L19.nc $rmlist"
 ncwa -a time "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc tmp && mv tmp "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc
 ncdump "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc | sed 's/float/double/g' > tmp; ncgen -o "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc tmp; rm tmp
-ncks -A -C -v LSP "${Old_T31_output_file%.*}"_lsp_aps_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
+ncks -A -C -v LSP "${Old_T31_output_file%.*}"_lsp_aps_T63L19.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
 
 # Split up the variables:
 cdo splitname "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp_
