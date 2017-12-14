@@ -1,1 +1,0 @@
-../../adjust_jan_spec.sh

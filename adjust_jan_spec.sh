@@ -70,6 +70,7 @@ function regrid_vertical_and_horizontal_T31L19_to_T63L47(){
     if [ $varname == "q" ] || [ $varname == "t" ]
     then
         vars="q,t,aps"
+        merge_geosp_for_vertical_interpolation=1
     else
         vars="${varname},aps"
     fi
@@ -94,7 +95,12 @@ function regrid_vertical_and_horizontal_T31L19_to_T63L47(){
     #
     # Regrid vertically
     #
-    cdo -s remapeta,vct,geosp_for_vertical_interpolation.nc \
+    if [ $merge_geosp_for_vertical_interpolation = 1 ]
+    then
+        cdo merge geosp_for_vertical_interpolation.nc regrid_file_T63L19.nc tmp
+        mv tmp regrid_file_T63L19.nc
+    fi
+    cdo -s remapeta,vct \
         regrid_file_T63L19.nc \
         regrid_file_T63L47.nc
     rmlist="regrid_file_T63L47.nc $rmlist"
