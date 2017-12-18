@@ -7,8 +7,14 @@ testdirPI = tests/T63L47_PI
 testdirLGM = tests/T63L47_LGM
 
 all:
+	get_test_data
 	test_PI
 	test_LGM
+
+get_test_data:
+	./get_test_data.sh
+	tar -xzvf tests.tar.gz 
+	
 test_PI:
 	./adjust_jan_spec.sh \
 		${testdirPI}/data/EXP003_echam5_main_mm_560101.nc \
