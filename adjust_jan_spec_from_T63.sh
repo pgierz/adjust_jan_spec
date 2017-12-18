@@ -74,13 +74,16 @@ rmlist="${Standard_T63L47_jan_spec_file%.*}_seperated.nc $rmlist"
 cdo -s sp2gp "${Standard_T63L47_jan_spec_file%.*}"_seperated.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
 rmlist="${Standard_T63L47_jan_spec_file%.*}_seperated_sp2gp.nc $rmlist"
 
+cdo -s sp2gp ${Old_T63_output_file} "${Old_T63_output_file%.*}"_sp2gp.nc
+rmlist="${Old_T63_output_file%.*}_sp2gp.nc $rmlist"
+
 function insert_into_jan_spec_from_T63L47_run() {
     varname=$1
     newname=$2
-    echo -e "\032[0;36m Inserting T63 Output into jan_spec file for $varname --> $newname \033[0m"
+    echo -e "\033[0;36m Inserting T63 Output into jan_spec file for $varname --> $newname \033[0m"
     cdo -s \
         -selvar,$varname \
-        ${Old_T63_output_file} \
+        "${Old_T63_output_file%.*}"_sp2gp.nc \
         regrid_file_T63L47.nc
     rmlist="regrid_file_T63L47.nc $rmlist"
     ncwa -a time regrid_file_T63L47.nc tmp && mv tmp regrid_file_T63L47.nc
@@ -89,7 +92,6 @@ function insert_into_jan_spec_from_T63L47_run() {
     ncrename -v $varname,$newname regrid_file_T63L47.nc tmp; mv tmp regrid_file_T63L47.nc
     ncks -A -C -v $newname regrid_file_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated_sp2gp.nc
 }
-
 
 insert_into_jan_spec_from_T63L47_run q Q
 insert_into_jan_spec_from_T63L47_run svo SVO
@@ -122,7 +124,6 @@ mv "${Standard_T63L47_jan_spec_file%.*}"_sp2gp_gp2sp.nc ${ofile}
 
 ##### Clean Up:
 rm -f $rmlist
-
 
 echo -e "\033[1;32m F I N I S H E D! "
 echo -e "\033[0m"
