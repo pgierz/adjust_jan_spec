@@ -34,7 +34,7 @@ Default_T63_output_file=$4
 rmlist=""
 
 # Get the standard T63L47_jan_spec.nc to work with
-# and set up the environemtn for this script
+# and set up the environment for this script
 module purge
 case $HOSTNAME in
     (mlogin*)
