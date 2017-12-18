@@ -41,6 +41,16 @@ The resulting file `T63L47_jan_spec_from_T31L19.nc` contains:
 - log surface pressure `LSP`
 vertically and laterally interpolated from the simulated values of the `T31L19` run. 
 
+## Testing
+
+You may use the supplied `Makefile` to perform a test of PI as well as LGM runs. Prerequisites are an approriately configured `.netrc` file on `mistral`.
+
+```shell
+make get_test_data
+make test_PI
+make test_LGM
+```
+
 
 ## Contact
 
