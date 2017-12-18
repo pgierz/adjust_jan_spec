@@ -11,18 +11,27 @@ You don't really need to install this. Just do:
 ```
 git clone ${adjust_jan_spec_repo} ${my_favorite_location}
 ```
-ta-da! Congrats. You probably just used `git` for the first time...start using it!! It makes your life easier. I promise.
+ta-da!
 
 ## Example Usage
 
 Basic usage is exemplified below:
 
-```
+```shell
 $ ./adjust_jan_spec.sh \
    ${file1} \
    ${file2} \
-   ${file3}
+   ${file3} \
+   ${file4}
 ```
+
+Where:
+- `file1`: A `${EXPID}_echam5_main_mm_????01.nc` file (standard post-processing is assumed!)
+- `file2`: Original T31 orography (e.g. a `T31GR30_jan_surf.nc` file)
+- `file3`: Target T63 orography file
+- `File4`: Model output with the target vertical resolution to generate a vertical coordinate table.
+
+Running the script without any argumetns will print a help message.
 
 The resulting file `T63L47_jan_spec_from_T31L19.nc` contains:
 - humidity `Q`
