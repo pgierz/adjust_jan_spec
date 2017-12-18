@@ -99,7 +99,7 @@ insert_into_jan_spec_from_T63L47_run lsp LSP
 cdo -s export_e5ml "${Standard_T63L47_jan_spec_file%.*}"_seperated.nc  ${ofile}
 
 ##### Clean Up:
-#rm -f $rmlist
+rm -f $rmlist
 
 echo -e "\033[1;32m F I N I S H E D! "
 echo -e "\033[0m"
