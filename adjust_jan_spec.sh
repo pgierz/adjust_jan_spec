@@ -33,9 +33,27 @@ Default_T63_output_file=$4
 # Keep a cleanup variable around
 rmlist=""
 
-# Set up the environment for this script:
+# Get the standard T63L47_jan_spec.nc to work with
+# and set up the environemtn for this script
 module purge
-module load cdo nco netcdf            # PG: Maybe think about using a different cdo version here?
+case $HOSTNAME in
+    (mlogin*)
+        Standard_T63L47_jan_spec_filepath_file=/pool/data/ECHAM6/T63/T63L47_jan_spec.nc
+        module load cdo
+        module load nco
+        module load netcdf_c/4.3.2-gcc48
+        ;;
+    (ollie*)
+        Standard_T63L47_jan_spec_filepath_file=/home/ollie/pgierz/reference_stuff/T63L47_jan_spec.nc
+        module load cdo
+        module load nco
+        module load netcdf
+        ;;
+    (*)
+        echo "I don't know where to look for the standard T63L47_jan_spec.nc file! Please add a case!"
+        exit
+esac
+
 echo -e "\033[1;33m Using cdo Version: "
 cdo -s -V
 echo -e "\033[0m"
@@ -45,20 +63,6 @@ echo -e "\033[1;33m For more information about the"
 echo "cdo remapeta command, please see: "
 echo "https://code.mpimet.mpg.de/issues/8144"
 echo -e "\033[0m"
-
-
-# Get the standard T63L47_jan_spec.nc to work with
-case $HOSTNAME in
-    (mlogin*)
-        Standard_T63L47_jan_spec_filepath_file=/pool/data/ECHAM6/T63/T63L47_jan_spec.nc
-        ;;
-    (ollie*)
-        Standard_T63L47_jan_spec_filepath_file=/home/ollie/pgierz/reference_stuff/T63L47_jan_spec.nc
-        ;;
-    (*)
-        echo "I don't know where to look for the standard T63L47_jan_spec.nc file! Please add a case!"
-        exit
-esac
 
 cp $Standard_T63L47_jan_spec_filepath_file .
 Standard_T63L47_jan_spec_file=$(basename $Standard_T63L47_jan_spec_filepath_file)
@@ -96,6 +100,33 @@ function regrid_vertical_and_horizontal_T31L19_to_T63L47(){
         ${Old_T31_output_file} \
         regrid_file_T63L19.nc
     #
+    # Make sure the spectral coefficients are in the regrid file
+    #
+    if      $(ncdump -h regrid_file_T63L19.nc | grep -q hyai) ||
+            $(ncdump -h regrid_file_T63L19.nc | grep -q hybi) ||
+            $(ncdump -h regrid_file_T63L19.nc | grep -q hyma) ||
+            $(ncdump -h regrid_file_T63L19.nc | grep -q hybm)
+    then
+        : #  Variables found, do nothing...
+    else
+        ncks -v hyai,hybi,hyam,hybm ${Old_T31_output_file} spectral_parameters.nc
+        ncks -A spectral_parameters.nc regrid_file_T63L19.nc
+        rmlist="spectral_parameters.nc $rmlist"
+    fi
+    #
+    # Ensure that the lev is described correctly
+    #
+    ncatted \
+        -a standard_name,lev,o,c,"hybrid_sigma_pressure" \
+        -a long_name,lev,o,c,"hybrid level at layer midpoints" \
+        -a formula,lev,o,c,"hyam hybm (mlev=hyam+hyb*aps)" \
+        -a formula_terms,lev,o,c,"ap: hyam b: hybm ps: aps" \
+        -a units,lev,o,c,"level" \
+        -a positive,lev,o,c,"down" \
+        regrid_file_T63L19.nc \
+        tmp
+    mv tmp regrid_file_T63L19.nc
+    #
     # Add the SOURCE orography to the input file
     #
     cdo -s remapbil,t63grid \
@@ -111,12 +142,12 @@ function regrid_vertical_and_horizontal_T31L19_to_T63L47(){
     cdo -s vct $Default_T63_output_file > vct
     rmlist="vct $rmlist"
     # 2. Target Orography
-    cdo -s -chname,GEOSP,geosp -selvar,GEOSP $Target_Orog_file geosp_for_vertical_interpolation.nc
-    rmlist="geosp_for_vertical_interpolation.nc $rmlist"
+    cdo -s -chname,GEOSP,geosp -selvar,GEOSP $Target_Orog_file target_geosp_for_vertical_interpolation.nc
+    rmlist="target_geosp_for_vertical_interpolation.nc $rmlist"
     #
     # Regrid vertically
     #
-    cdo -s remapeta,vct \
+    cdo -s remapeta,vct,target_geosp_for_vertical_interpolation.nc \
         regrid_file_T63L19.nc \
         regrid_file_T63L47.nc
     rmlist="regrid_file_T63L47.nc $rmlist"
