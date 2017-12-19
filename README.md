@@ -26,30 +26,31 @@ $ ./adjust_jan_spec_from_T31.sh \
 ```
 
 Where:
-- `file1`: A `${EXPID}_echam5_main_mm_????01.nc` file (standard post-processing is assumed!)
-- `file2`: Original T31 orography (e.g. a `T31GR30_jan_surf.nc` file)
-- `file3`: Target T63 orography file
-- `File4`: Model output with the target vertical resolution to generate a vertical coordinate table.
+- `file1`: a `${EXPID}_echam5_main_mm_????01.nc` file (standard post-processing is assumed!)
+- `file2`: original T31 orography (e.g. a `T31GR30_jan_surf.nc` file)
+- `file3`: target T63 orography file
+- `file4`: model output with the target vertical resolution to generate a vertical coordinate table.
 
 Running the script without any argumetns will print a help message.
 
 The resulting file `T63L47_jan_spec_from_T31L19.nc` contains:
+
 - humidity `Q`
-- temperature `STP`
+- temperature `STP` abd log surface pressure `LSP` merged via the `export_e5ml` command
 - vorticity `SVO`
 - divergence `SD`
-- log surface pressure `LSP`
+
 vertically and laterally interpolated from the simulated values of the `T31L19` run. 
 
 ## Testing and Reproducibility
 
-You may use the supplied `Makefile` to perform a test of PI as well as LGM runs. Prerequisites are an approriately configured `.netrc` file on `mistral`.
+You may use the supplied `Makefile` to perform a test of PI as well as LGM runs. Prerequisites are an approriately configured `.netrc` file on `mistral`. In order to download the prerequisite data and generate all test inputs for the `unit.23` files, simply use `make` in the top level directory.
 
 ```shell
 make
 ```
 
-Configuration files for the `mkexp` program (generator for `mpiesm` runscripts) are also supplied, you may use these to reproduce the `orog_???` tests.
+Configuration files for the `mkexp` program (generator for `MPIESM` runscripts) are also supplied, you may use these to reproduce the `orog_???` tests. Experiment paths will need to be appropriately modified.
 
 ## Contact
 
