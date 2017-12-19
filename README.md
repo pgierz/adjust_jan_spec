@@ -18,7 +18,7 @@ ta-da!
 Basic usage is exemplified below:
 
 ```shell
-$ ./adjust_jan_spec.sh \
+$ ./adjust_jan_spec_from_T31.sh \
    ${file1} \
    ${file2} \
    ${file3} \
@@ -41,16 +41,15 @@ The resulting file `T63L47_jan_spec_from_T31L19.nc` contains:
 - log surface pressure `LSP`
 vertically and laterally interpolated from the simulated values of the `T31L19` run. 
 
-## Testing
+## Testing and Reproducibility
 
 You may use the supplied `Makefile` to perform a test of PI as well as LGM runs. Prerequisites are an approriately configured `.netrc` file on `mistral`.
 
 ```shell
-make get_test_data
-make test_PI
-make test_LGM
+make
 ```
 
+Configuration files for the `mkexp` program (generator for `mpiesm` runscripts) are also supplied, you may use these to reproduce the `orog_???` tests.
 
 ## Contact
 
