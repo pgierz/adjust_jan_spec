@@ -64,7 +64,7 @@ Standard_T63L47_jan_spec_file=$(basename $Standard_T63L47_jan_spec_filepath_file
 # Generate the output file name using the old expid:
 only_name=$(basename $Old_T63_output_file)
 oldexpid="${only_name%_echam6*}"
-ofile="${Standard_T63L47_jan_spec_file%.*}_from_${oldexpid}_T63L47.nc"
+ofile="${Standard_T63L47_jan_spec_file%.*}_from_${oldexpid}_T63L47_without_gp2sp.nc"
 
 # Seperate variable STP (Spectral Temperature) into both spectral temperature
 # and log of surface pressure, as it contains spectral temperature in levels
