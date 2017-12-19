@@ -80,13 +80,13 @@ function insert_into_jan_spec_from_T63L47_run() {
     cdo -s \
         -selvar,$varname \
         ${Old_T63_output_file} \
-        regrid_file_T63L47.nc
-    rmlist="regrid_file_T63L47.nc $rmlist"
-    ncwa -a time regrid_file_T63L47.nc tmp && mv tmp regrid_file_T63L47.nc
+        regrid_file_T63L47_${varname}.nc
+    rmlist="regrid_file_T63L47_${varname}.nc $rmlist"
+    ncwa -a time regrid_file_T63L47_${varname}.nc tmp && mv tmp regrid_file_T63L47_${varname}.nc
     # make sure everything is double and not float (this causes chaos and strange numbers otherwise...)
-    ncdump regrid_file_T63L47.nc | sed 's/float/double/g' > tmp; ncgen -o regrid_file_T63L47.nc tmp; rm tmp
-    ncrename -v $varname,$newname regrid_file_T63L47.nc tmp; mv tmp regrid_file_T63L47.nc
-    ncks -A -C -v $newname regrid_file_T63L47.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated.nc
+    ncdump regrid_file_T63L47_${varname}.nc | sed 's/float/double/g' > tmp; ncgen -o regrid_file_T63L47_${varname}.nc tmp; rm tmp
+    ncrename -v $varname,$newname regrid_file_T63L47_${varname}.nc tmp; mv tmp regrid_file_T63L47_${varname}.nc
+    ncks -A -C -v $newname regrid_file_T63L47_${varname}.nc "${Standard_T63L47_jan_spec_file%.*}"_seperated.nc
 }
 
 insert_into_jan_spec_from_T63L47_run q Q
