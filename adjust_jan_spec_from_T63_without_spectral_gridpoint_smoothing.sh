@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 echo -e "\033[1;32m S T A R T   O F   P R O G R A M "
-echo    adjust_jan_spec.sh
+echo    adjust_jan_spec_from_T63_without_spectral_gridpoint_smoothing.sh
 echo -e "\033[0m"
 
 read -r -d '' usage <<'EOF'
